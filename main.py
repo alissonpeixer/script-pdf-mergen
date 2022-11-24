@@ -45,8 +45,12 @@ def mergerPdf():
             invoices['PO'] = file
     # filter xlsx_files
     for xls in xlsx_files:
+
+        from excelConvert import excel_2_pdf
+
         get_first_file_name = xls.split('.')
-        os.rename(xls, f'{get_first_file_name[0]}.pdf')
+        excel_2_pdf(xls)
+
         invoices['EXCEL'] = f'{get_first_file_name[0]}.pdf'
     # genPdfFile
     from PyPDF2 import PdfMerger
