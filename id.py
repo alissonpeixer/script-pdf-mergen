@@ -1,24 +1,23 @@
 import os
 import re
 
-
 # Fatura
 # Dict
 # excel
 # PO
 
-
-pdf_files = []
-
-number_re = re.compile('\d{10}')
+pdf_files, xlsx_files = [], []
 
 bd_re = re.compile('(\d{10}\_\d{10})')
-ft_re = re.compile('(PO(\_|\-|\ )\d{10})')
-po_re = re.compile('(\d{10}(\ |\-|\_)NI)')
+dict_re = re.compile('(PO(\_|\-|\ )\d{10})')  # DICT
+po_re = re.compile('(\d{10}(\ |\-|\_)NI)')  # PO
 
 
 def mergerPdf():
 
+    invoices = {}
+
+    # filter files
     for file in os.listdir():
 
         if not os.path.isfile(file):
@@ -29,37 +28,39 @@ def mergerPdf():
             pdf_files.append(file)
 
         elif file.endswith('.xlsx'):
-            continue
-
-    # genPdfFile
-    from PyPDF2 import PdfMerger
-
-    bd_po = []
-
+            xlsx_files.append(file)
+    # analyze files
     for file in pdf_files:
 
         file_name, disc = file.split('.')
 
         first_file_name = file_name.split(' ')[0]
 
-        if len(file_name) == 10:
-            bd_po.append(first_file_name)
+        if len(first_file_name) == 10:
+            invoices['BD'] = file
 
-        elif len(first_file_name) == 10:
-            bd_po.append(first_file_name)
+        if dict_re.findall(file):
+            invoices['DICT'] = file
+        elif po_re.findall(file):
+            invoices['PO'] = file
+    # filter xlsx_files
+    for xls in xlsx_files:
+        get_first_file_name = xls.split('.')
+        os.rename(xls, f'{get_first_file_name[0]}.pdf')
+        invoices['EXCEL'] = f'{get_first_file_name[0]}.pdf'
+    # genPdfFile
+    from PyPDF2 import PdfMerger
 
     pdfs = [
-        pdf_files[2],  # Fatura
-
-        pdf_files[3],  # Dict
-
-        pdf_files[1],  # excel
-
-        pdf_files[0]  # PO
+        invoices['BD'],  # Fatura
+        invoices['DICT'],  # Dict
+        invoices['EXCEL'],
+        invoices['PO']  # Po
     ]
 
     merger = PdfMerger()
 
+    print(f'Merger to files...')
     for pdf in pdfs:
         merger.append(pdf)
 
